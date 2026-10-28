@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ cv.name }} – CV</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 10.5pt; line-height: 1.45; color: #222; }
+    h1, h2, h3, p { margin: 0; }
+    header { text-align: center; margin-bottom: 16px; }
+    header h1 { font-size: 22pt; letter-spacing: .04em; }
+    header .title { font-size: 11.5pt; color: #555; margin-top: 2px; }
+    section { margin-bottom: 14px; }
+    h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: .1em; border-bottom: 1px solid #999; padding-bottom: 2px; margin-bottom: 6px; }
+    .project { margin-bottom: 10px; break-inside: avoid; }
+    .project-head { display: flex; justify-content: space-between; }
+    .project h3 { font-size: 11pt; }
+    .meta { color: #555; font-size: 9.5pt; font-style: italic; }
+    .label { font-weight: 600; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>{{ cv.name }}</h1>
+  <div class="title">{{ cv.jobTitle }}{% if cv.yearsOfExperience %} · {{ cv.yearsOfExperience }} years of experience{% endif %}</div>
+</header>
+
+{% if cv.summary %}
+<section>
+  <h2>Profile Summary</h2>
+  <p>{{ cv.summary }}</p>
+</section>
+{% endif %}
+
+{% if cv.skills | length %}
+<section>
+  <h2>Skills</h2>
+  <p>{{ cv.skills | join(" · ") }}</p>
+</section>
+{% endif %}
+
+{% if cv.projects | length %}
+<section>
+  <h2>Project Experience</h2>
+  {% for p in cv.projects %}
+  <div class="project">
+    <div class="project-head">
+      <h3>{{ p.name }}</h3>
+      <span class="meta">{{ p.startDate | date }} – {{ p.endDate | date }}</span>
+    </div>
+    <div class="meta">{{ [p.client, p.location] | select | join(" · ") }}</div>
+    <div><span class="label">Role:</span> {{ p.role }}</div>
+    {% if p.description %}<p>{{ p.description }}</p>{% endif %}
+    {% if p.responsibilities %}<div><span class="label">Contributions:</span> {{ p.responsibilities }}</div>{% endif %}
+    {% if p.technologies | length %}<div class="meta">Technologies: {{ p.technologies | join(", ") }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+</body>
+</html>

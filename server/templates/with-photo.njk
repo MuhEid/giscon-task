@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ cv.name }} – CV</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1f2933; }
+    h1, h2, h3, p { margin: 0; }
+    header { display: flex; align-items: center; gap: 18px; border-bottom: 2px solid #1d4ed8; padding-bottom: 12px; margin-bottom: 14px; }
+    header img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; }
+    header h1 { font-size: 22pt; }
+    header .title { font-size: 12pt; color: #1d4ed8; }
+    section { margin-bottom: 14px; }
+    h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: .08em; color: #1d4ed8; margin-bottom: 6px; }
+    .skills { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+    .skills span { background: #eef2ff; border-radius: 3px; padding: 1px 7px; font-size: 9.5pt; }
+    .project { margin-bottom: 10px; break-inside: avoid; }
+    .project-head { display: flex; justify-content: space-between; }
+    .project h3 { font-size: 11pt; }
+    .meta { color: #52606d; font-size: 9.5pt; }
+    .label { font-weight: 600; }
+  </style>
+</head>
+<body>
+<header>
+  {% if cv.photoUrl %}<img src="{{ cv.photoUrl }}" alt="">{% endif %}
+  <div>
+    <h1>{{ cv.name }}</h1>
+    <div class="title">{{ cv.jobTitle }}{% if cv.yearsOfExperience %} · {{ cv.yearsOfExperience }} years of experience{% endif %}</div>
+  </div>
+</header>
+
+{% if cv.summary %}
+<section>
+  <h2>Profile Summary</h2>
+  <p>{{ cv.summary }}</p>
+</section>
+{% endif %}
+
+{% if cv.skills | length %}
+<section>
+  <h2>Skills</h2>
+  <div class="skills">{% for skill in cv.skills %}<span>{{ skill }}</span>{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if cv.projects | length %}
+<section>
+  <h2>Project Experience</h2>
+  {% for p in cv.projects %}
+  <div class="project">
+    <div class="project-head">
+      <h3>{{ p.name }}</h3>
+      <span class="meta">{{ p.startDate | date }} – {{ p.endDate | date }}</span>
+    </div>
+    <div class="meta">{{ [p.client, p.location] | select | join(" · ") }}</div>
+    <div><span class="label">Role:</span> {{ p.role }}</div>
+    {% if p.description %}<p>{{ p.description }}</p>{% endif %}
+    {% if p.responsibilities %}<div><span class="label">Contributions:</span> {{ p.responsibilities }}</div>{% endif %}
+    {% if p.technologies | length %}<div class="meta">Technologies: {{ p.technologies | join(", ") }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+</body>
+</html>
