@@ -1,5 +1,6 @@
 import { defineConfig } from "@mikro-orm/postgresql";
 import { Migrator } from "@mikro-orm/migrations";
+import { Staff, Project, ProjectAssignment } from "./entities/index.js";
 
 export default defineConfig({
   host: process.env.DB_HOST || "localhost",
@@ -7,7 +8,7 @@ export default defineConfig({
   user: process.env.DB_USER || "postgres",
   password: process.env.DB_PASSWORD || "postgres",
   dbName: process.env.DB_NAME || "cv_generator",
-  entities: [],
+  entities: [Staff, Project, ProjectAssignment],
   extensions: [Migrator],
   migrations: {
     path: "dist/migrations",
