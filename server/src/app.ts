@@ -7,6 +7,7 @@ import { staffRouter } from "./modules/staff/staff.routes.js";
 import { projectsRouter } from "./modules/projects/projects.routes.js";
 import { assignmentsRouter } from "./modules/assignments/assignments.routes.js";
 import { cvRouter } from "./modules/cv/cv.routes.js";
+import { templatesRouter } from "./modules/templates/templates.routes.js";
 import { UPLOADS_DIR } from "./modules/staff/photos.js";
 
 export function createApp(orm: MikroORM) {
@@ -27,7 +28,8 @@ export function createApp(orm: MikroORM) {
   app.use("/api/staff/:staffId/assignments", assignmentsRouter(orm.em));
   app.use("/api/staff", staffRouter(orm.em));
   app.use("/api/projects", projectsRouter(orm.em));
-  app.use("/api", cvRouter(orm.em));
+  app.use("/api/templates", templatesRouter(orm.em));
+  app.use("/api/cv", cvRouter(orm.em));
 
   app.use(errorHandler);
 
