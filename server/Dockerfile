@@ -17,7 +17,8 @@ ENV NODE_ENV=production \
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
-COPY templates ./templates
+# Owned by the runtime user: templates are editable from the UI (and live on a volume, see docker-compose.yml).
+COPY --chown=node:node templates ./templates
 # Uploaded photos; owned by the runtime user so it can write to the mounted volume.
 RUN mkdir -p uploads && chown node:node uploads
 EXPOSE 5000
