@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <title>{{ cv.name }} – CV</title>
   <style>
-    @page { size: A4; margin: 18mm 16mm; }
+    /* The page margins live on <body> (repeated on every page by box-decoration-break), not in @page,
+       so they survive the browser print dialog's "Margins: None" setting. */
+    @page { size: A4; margin: 0; }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 10.5pt; line-height: 1.45; color: #222; }
+    body { margin: 0; padding: 18mm 16mm; box-decoration-break: clone; -webkit-box-decoration-break: clone; print-color-adjust: exact; -webkit-print-color-adjust: exact; font-family: Georgia, "Times New Roman", serif; font-size: 10.5pt; line-height: 1.45; color: #222; }
     h1, h2, h3, p { margin: 0; }
     header { text-align: center; margin-bottom: 16px; }
     header h1 { font-size: 22pt; letter-spacing: .04em; }
     header .title { font-size: 11.5pt; color: #555; margin-top: 2px; }
+    header .contact { font-size: 9.5pt; color: #555; margin-top: 4px; }
+    header .contact a { color: inherit; text-decoration: none; }
     section { margin-bottom: 14px; }
     h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: .1em; border-bottom: 1px solid #999; padding-bottom: 2px; margin-bottom: 6px; }
     .project { margin-bottom: 10px; break-inside: avoid; }
@@ -18,12 +22,22 @@
     .project h3 { font-size: 11pt; }
     .meta { color: #555; font-size: 9.5pt; font-style: italic; }
     .label { font-weight: 600; }
+    .responsibilities { white-space: pre-line; }
+    /* On screen (the browser preview) show an A4 sheet; narrower than A4, the sheet shrinks to fit instead of scrolling. */
+    @media screen {
+      html { background: #e5e7eb; }
+      body { max-width: 210mm; min-height: 297mm; margin: 16px auto; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .15); }
+    }
+    @media screen and (max-width: 640px) {
+      body { padding: 8mm 6mm; margin: 0; min-height: 0; box-shadow: none; }
+    }
   </style>
 </head>
 <body>
 <header>
   <h1>{{ cv.name }}</h1>
   <div class="title">{{ cv.jobTitle }}{% if cv.yearsOfExperience %} · {{ cv.yearsOfExperience }} years of experience{% endif %}</div>
+  {% if cv.email or cv.phone %}<div class="contact">{% if cv.email %}<a href="mailto:{{ cv.email }}">{{ cv.email }}</a>{% endif %}{% if cv.email and cv.phone %} · {% endif %}{% if cv.phone %}<a href="tel:{{ cv.phone }}">{{ cv.phone }}</a>{% endif %}</div>{% endif %}
 </header>
 
 {% if cv.summary %}
@@ -49,10 +63,10 @@
       <h3>{{ p.name }}</h3>
       <span class="meta">{{ p.startDate | date }} – {{ p.endDate | date }}</span>
     </div>
-    <div class="meta">{{ [p.client, p.location] | select | join(" · ") }}</div>
+    <div class="meta">{{ [p.client, p.location, p.sector] | select | join(" · ") }}</div>
     <div><span class="label">Role:</span> {{ p.role }}</div>
     {% if p.description %}<p>{{ p.description }}</p>{% endif %}
-    {% if p.responsibilities %}<div><span class="label">Contributions:</span> {{ p.responsibilities }}</div>{% endif %}
+    {% if p.responsibilities %}<div class="responsibilities"><span class="label">Contributions:</span> {{ p.responsibilities }}</div>{% endif %}
     {% if p.technologies | length %}<div class="meta">Technologies: {{ p.technologies | join(", ") }}</div>{% endif %}
   </div>
   {% endfor %}
