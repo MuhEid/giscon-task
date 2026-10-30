@@ -29,6 +29,12 @@ export interface Assignment {
   responsibilities: string | null
 }
 
+// A CV template: a Nunjucks HTML file on the server, identified by its file name.
+export interface Template {
+  id: string
+  content: string
+}
+
 export type StaffInput = Omit<Staff, 'id' | 'photoPath'>
 export type ProjectInput = Omit<Project, 'id'>
 export type AssignmentInput = Omit<Assignment, 'project'>
@@ -81,7 +87,21 @@ export const api = {
     remove: (staffId: number, projectId: number) =>
       request<void>(`/staff/${staffId}/assignments/${projectId}`, { method: 'DELETE' }),
   },
-  templates: () => request<string[]>('/templates'),
+  templates: {
+    list: () => request<string[]>('/templates'),
+    get: (id: string) => request<Template>(`/templates/${id}`),
+    create: (id: string, content: string) =>
+      request<Template>('/templates', { method: 'POST', body: JSON.stringify({ id, content }) }),
+    save: (id: string, content: string) =>
+      request<Template>(`/templates/${id}`, { method: 'PUT', body: JSON.stringify({ content }) }),
+    remove: (id: string) => request<void>(`/templates/${id}`, { method: 'DELETE' }),
+    // Renders unsaved template source with a staff member's data, or sample data when staffId is null.
+    preview: (content: string, staffId: number | null) =>
+      request<{ html: string }>('/templates/preview', {
+        method: 'POST',
+        body: JSON.stringify({ content, staffId }),
+      }),
+  },
   // CV URLs are loaded directly by an iframe / link rather than fetched as JSON.
   // `exclude` leaves those projects off this CV only; the assignments are not changed.
   cvUrl: (staffId: number, kind: 'preview' | 'pdf', template: string, exclude: number[]) => {
@@ -97,6 +117,9 @@ export const toList = (text: string) =>
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
+
+// "with-photo" -> "With photo"
+export const templateLabel = (id: string) => id.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
 
 export const photoSrc = (photoPath: string) => `/api/uploads/${photoPath}`
 
