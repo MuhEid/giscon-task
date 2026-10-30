@@ -240,6 +240,11 @@ button.danger {
   grid-template-columns: 380px 1fr;
 }
 
+/* Room for a full-width A4 sheet (210mm ≈ 794px) in the preview. */
+main:has(> .cv) {
+  max-width: 1480px;
+}
+
 @media (max-width: 900px) {
   .cv {
     grid-template-columns: 1fr;
