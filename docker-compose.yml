@@ -28,6 +28,10 @@ services:
       - "5000:5000"
     volumes:
       - uploads:/app/uploads
+      # Templates edited in the UI. Docker fills the volume from the image only when it is first created;
+      # after that, to pick up changes made to server/templates in the repo (discarding UI edits), run
+      # `docker compose rm -sf server && docker volume rm giscon-task_templates && docker compose up -d server`.
+      - templates:/app/templates
     depends_on:
       db:
         condition: service_healthy
@@ -42,3 +46,4 @@ services:
 volumes:
   db-data:
   uploads:
+  templates:
