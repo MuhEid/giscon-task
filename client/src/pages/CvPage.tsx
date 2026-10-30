@@ -1,12 +1,10 @@
 import { useRef, useState } from 'react'
-import { api, formatDate } from '../api'
+import { api, formatDate, templateLabel } from '../api'
 import { useList } from '../useList'
-
-const templateLabel = (id: string) => id.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
 
 export default function CvPage() {
   const { items: staff, error: staffError } = useList(api.staff.list)
-  const { items: templates } = useList(api.templates)
+  const { items: templates } = useList(api.templates.list)
   const [staffId, setStaffId] = useState<number | null>(null)
   const [chosenTemplate, setTemplate] = useState('')
   const template = chosenTemplate || templates[0] || ''
