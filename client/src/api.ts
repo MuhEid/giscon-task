@@ -7,7 +7,8 @@ export interface Staff {
   skills: string[]
   email: string | null
   phone: string | null
-  photoUrl: string | null
+  // Relative to /api/uploads; changed only through api.staff.uploadPhoto/removePhoto.
+  photoPath: string | null
 }
 
 export interface Project {
@@ -28,14 +29,14 @@ export interface Assignment {
   responsibilities: string | null
 }
 
-export type StaffInput = Omit<Staff, 'id'>
+export type StaffInput = Omit<Staff, 'id' | 'photoPath'>
 export type ProjectInput = Omit<Project, 'id'>
 export type AssignmentInput = Omit<Assignment, 'project'>
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
   })
   if (!res.ok) {
     const body = await res.json().catch(() => null)
@@ -56,7 +57,13 @@ function crud<T, TInput>(path: string) {
 }
 
 export const api = {
-  staff: crud<Staff, StaffInput>('/staff'),
+  staff: {
+    ...crud<Staff, StaffInput>('/staff'),
+    // The file itself is the request body; the server stores it and saves its path on the staff member.
+    uploadPhoto: (id: number, file: File) =>
+      request<Staff>(`/staff/${id}/photo`, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } }),
+    removePhoto: (id: number) => request<Staff>(`/staff/${id}/photo`, { method: 'DELETE' }),
+  },
   projects: crud<Project, ProjectInput>('/projects'),
   // A staff member's project assignments, identified by project id.
   assignments: {
@@ -90,6 +97,8 @@ export const toList = (text: string) =>
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
+
+export const photoSrc = (photoPath: string) => `/api/uploads/${photoPath}`
 
 export const orNull = (text: string) => text.trim() || null
 

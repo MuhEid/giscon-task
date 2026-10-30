@@ -18,6 +18,8 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY templates ./templates
+# Uploaded photos; owned by the runtime user so it can write to the mounted volume.
+RUN mkdir -p uploads && chown node:node uploads
 EXPOSE 5000
 USER node
 CMD ["node", "dist/index.js"]

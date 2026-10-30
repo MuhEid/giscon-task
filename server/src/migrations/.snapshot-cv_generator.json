@@ -461,8 +461,8 @@
           "enumItems": [],
           "mappedType": "string"
         },
-        "photo_url": {
-          "name": "photo_url",
+        "photo_path": {
+          "name": "photo_path",
           "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,

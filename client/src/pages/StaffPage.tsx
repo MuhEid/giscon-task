@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from 'react'
-import { api, orNull, toList, type Staff } from '../api'
+import { api, orNull, photoSrc, toList, type Staff } from '../api'
 import { useList } from '../useList'
 import AssignmentsPanel from '../components/AssignmentsPanel'
 
@@ -11,7 +11,6 @@ const empty = {
   skills: '',
   email: '',
   phone: '',
-  photoUrl: '',
 }
 
 type Form = typeof empty
@@ -24,13 +23,15 @@ const toForm = (s: Staff): Form => ({
   skills: s.skills.join(', '),
   email: s.email ?? '',
   phone: s.phone ?? '',
-  photoUrl: s.photoUrl ?? '',
 })
 
 export default function StaffPage() {
   const { items: staff, error: loadError, reload } = useList(api.staff.list)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState<Form>(empty)
+  // The saved photo, and a newly picked file that is uploaded on save (so it works for new staff too).
+  const [photoPath, setPhotoPath] = useState<string | null>(null)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const set = (field: keyof Form) => (e: { target: { value: string } }) =>
@@ -39,12 +40,16 @@ export default function StaffPage() {
   function startEdit(s: Staff) {
     setEditingId(s.id)
     setForm(toForm(s))
+    setPhotoPath(s.photoPath)
+    setPhotoFile(null)
     setError(null)
   }
 
   function reset() {
     setEditingId(null)
     setForm(empty)
+    setPhotoPath(null)
+    setPhotoFile(null)
     setError(null)
   }
 
@@ -56,13 +61,24 @@ export default function StaffPage() {
       skills: toList(form.skills),
       email: orNull(form.email),
       phone: orNull(form.phone),
-      photoUrl: orNull(form.photoUrl),
     }
     try {
       // Stay on the saved record so its project assignments can be managed right away.
-      const saved = editingId ? await api.staff.update(editingId, data) : await api.staff.create(data)
+      let saved = editingId ? await api.staff.update(editingId, data) : await api.staff.create(data)
+      setEditingId(saved.id)
+      if (photoFile) saved = await api.staff.uploadPhoto(saved.id, photoFile)
       startEdit(saved)
       reload()
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
+
+  async function removePhoto() {
+    if (!editingId || !confirm('Remove this photo?')) return
+    try {
+      await api.staff.removePhoto(editingId)
+      setPhotoPath(null)
     } catch (err) {
       setError((err as Error).message)
     }
@@ -152,8 +168,22 @@ export default function StaffPage() {
             </label>
           </div>
           <label>
-            Photo URL
-            <input type="url" value={form.photoUrl} onChange={set('photoUrl')} placeholder="Optional" />
+            Photo <small>Optional · JPEG, PNG or WebP, up to 5 MB</small>
+            {photoPath && (
+              <span className="photo">
+                <img src={photoSrc(photoPath)} alt="" />
+                <button type="button" className="danger" onClick={removePhoto}>
+                  Remove photo
+                </button>
+              </span>
+            )}
+            <input
+              // Remount after save/reset to clear the chosen file.
+              key={`${editingId}-${photoPath}`}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+            />
           </label>
           <label>
             Skills

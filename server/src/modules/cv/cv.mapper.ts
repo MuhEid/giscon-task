@@ -23,7 +23,8 @@ export function toCvProject({ project, role, responsibilities }: IProjectAssignm
 
 // Builds the template payload. `assignments` must have `project` populated and already be
 // filtered (excluded projects removed) and ordered as they should appear on the CV.
-export function toCvData(staff: IStaff, assignments: IProjectAssignment[]): CvData {
+// `photoUrl` is the photo as something the template can load (a data: URI), since the DB only holds a file path.
+export function toCvData(staff: IStaff, assignments: IProjectAssignment[], photoUrl?: string): CvData {
   return {
     name: staff.name,
     jobTitle: staff.jobTitle,
@@ -31,7 +32,7 @@ export function toCvData(staff: IStaff, assignments: IProjectAssignment[]): CvDa
     summary: staff.summary,
     email: staff.email ?? undefined,
     phone: staff.phone ?? undefined,
-    photoUrl: staff.photoUrl ?? undefined,
+    photoUrl,
     skills: staff.skills ?? [],
     projects: assignments.map(toCvProject),
   };

@@ -1,3 +1,4 @@
+import { STATUS_CODES } from "node:http";
 import type { ErrorRequestHandler } from "express";
 import {
   ConstraintViolationException,
@@ -32,11 +33,15 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof HttpError) status = err.status;
   else if (err instanceof NotFoundError) status = 404;
   else if (err instanceof UniqueConstraintViolationException) status = 409;
+  // Errors from express/body-parser/serve-static (malformed JSON, body too large, missing upload, ...).
+  else if (err.status >= 400 && err.status < 500) status = err.status;
   // Missing required fields, failed CHECKs, and Postgres "data exception" errors (bad date, bad number, ...).
   else if (err instanceof ValidationError || err instanceof ConstraintViolationException || err.code?.startsWith?.("22"))
     status = 400;
 
   if (status === 500) console.error(err);
+  // `expose: false` marks a message that isn't safe to show (e.g. serve-static's ENOENT includes the file path).
+  const message = status === 500 || err.expose === false ? STATUS_CODES[status] : String(err.message);
   // First line only: MikroORM appends an entity dump / SQL detail on the following lines.
-  res.status(status).json({ error: status === 500 ? "Internal server error" : String(err.message).split("\n")[0] });
+  res.status(status).json({ error: message?.split("\n")[0] });
 };

@@ -14,7 +14,8 @@ export const Staff = defineEntity({
     skills: p.array().default([]),
     email: p.string().nullable().unique(),
     phone: p.string().nullable(),
-    photoUrl: p.string().nullable(),
+    // Path of the uploaded photo relative to UPLOADS_DIR (e.g. "photos/abc.jpg"); set only via the photo endpoints.
+    photoPath: p.string().nullable(),
     createdAt: p.datetime().onCreate(() => new Date()),
     updatedAt: p.datetime().onCreate(() => new Date()).onUpdate(() => new Date()),
     // Participation (role, responsibilities) lives on ProjectAssignment, so create links

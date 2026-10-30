@@ -306,3 +306,19 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Staff photo */
+
+.photo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.photo img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}

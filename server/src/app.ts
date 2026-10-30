@@ -7,6 +7,7 @@ import { staffRouter } from "./modules/staff/staff.routes.js";
 import { projectsRouter } from "./modules/projects/projects.routes.js";
 import { assignmentsRouter } from "./modules/assignments/assignments.routes.js";
 import { cvRouter } from "./modules/cv/cv.routes.js";
+import { UPLOADS_DIR } from "./modules/staff/photos.js";
 
 export function createApp(orm: MikroORM) {
   const app = express();
@@ -21,6 +22,8 @@ export function createApp(orm: MikroORM) {
     res.status(ok ? 200 : 503).json({ status: ok ? "ok" : "degraded", app: "CV Generator", db: ok });
   });
 
+  // Uploaded files (staff photos), referenced by the paths stored in the DB.
+  app.use("/api/uploads", express.static(UPLOADS_DIR, { fallthrough: false, index: false }));
   app.use("/api/staff/:staffId/assignments", assignmentsRouter(orm.em));
   app.use("/api/staff", staffRouter(orm.em));
   app.use("/api/projects", projectsRouter(orm.em));

@@ -7,6 +7,7 @@ import { isTemplateId, renderHtml, TEMPLATES, type TemplateId } from "../../pdf/
 import { htmlToPdf } from "../../pdf/pdf.js";
 import type { CvData } from "../../pdf/types.js";
 import { toCvData } from "./cv.mapper.js";
+import { photoDataUri } from "../staff/photos.js";
 
 type CvParams = { staffId: string };
 
@@ -44,7 +45,7 @@ export function cvRouter(em: EntityManager) {
       { staff, ...(exclude.length && { project: { $nin: exclude } }) },
       { populate: ["project"], orderBy: { project: { startDate: "desc" } } },
     );
-    return { template, cv: toCvData(staff, assignments) };
+    return { template, cv: toCvData(staff, assignments, await photoDataUri(staff.photoPath)) };
   }
 
   router.get("/templates", (_req, res) => {

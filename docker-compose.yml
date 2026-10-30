@@ -26,6 +26,8 @@ services:
       DB_NAME: cv_generator
     ports:
       - "5000:5000"
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -39,3 +41,4 @@ services:
 
 volumes:
   db-data:
+  uploads:
