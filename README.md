@@ -1,6 +1,19 @@
 # giscon-task
 GISCON Technical Evaluation Task — **CV Generator**: an internal tool for storing staff and project data and generating professional CVs from predefined templates.
 
+## Time spent
+
+About **20 hours** in total over four days (26–31 October 2026):
+
+| Area | Hours |
+|---|---|
+| Setup: project structure, database, migrations, Docker | 3 |
+| Staff, projects and assignments (API and UI) | 5 |
+| CV templates, generation, preview and PDF export | 6 |
+| Template editor, photo upload and demo data | 4 |
+| README and testing | 2 |
+| **Total** | **20** |
+
 ## Setup
 
 ### Option 1: Docker (recommended)
@@ -200,3 +213,5 @@ All three take `template=<id>` (required) and `exclude=<projectId>,<projectId>` 
 | `GET` | `/api/cv/:staffId` | The data passed to the template, as JSON (useful when writing templates) |
 
 Example: `GET /api/cv/1/pdf?template=two-column-with-photo&exclude=3,7&download=1`
+
+
