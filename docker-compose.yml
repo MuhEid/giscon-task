@@ -24,6 +24,8 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: cv_generator
+      # Fill an empty database with demo staff, projects and assignments on start.
+      SEED_DEMO_DATA: "true"
     ports:
       - "5000:5000"
     volumes:
