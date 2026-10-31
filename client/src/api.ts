@@ -118,7 +118,7 @@ export const toList = (text: string) =>
     .map((s) => s.trim())
     .filter(Boolean)
 
-// "with-photo" -> "With photo"
+// "two-column-with-photo" -> "Two column with photo"
 export const templateLabel = (id: string) => id.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
 
 export const photoSrc = (photoPath: string) => `/api/uploads/${photoPath}`
