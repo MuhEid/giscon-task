@@ -1,4 +1,5 @@
 import puppeteer, { type Browser } from "puppeteer";
+import { HttpError } from "../common/http.js";
 import { renderHtml } from "./templates.js";
 import type { CvData } from "./types.js";
 
@@ -18,7 +19,13 @@ function getBrowser(): Promise<Browser> {
     })
     .catch((err) => {
       browserPromise = null;
-      throw err;
+      // Usually Chromium isn't installed (local dev without the Puppeteer download). Only PDF export and
+      // seed avatars need it, so report a clear 503 instead of a generic 500.
+      console.error(`[pdf] Could not start Chromium: ${String(err?.message).split("\n")[0]}`);
+      throw new HttpError(
+        503,
+        "PDF export isn't available: Chromium isn't installed on the server. Run `npx puppeteer browsers install chrome` in server/ or set PUPPETEER_EXECUTABLE_PATH.",
+      );
     });
   return browserPromise;
 }
