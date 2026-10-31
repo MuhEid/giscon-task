@@ -72,7 +72,7 @@
     <div class="meta">{{ [p.client, p.location, p.sector] | select | join(" · ") }}</div>
     <div><span class="label">Role:</span> {{ p.role }}</div>
     {% if p.description %}<p>{{ p.description }}</p>{% endif %}
-    {% if p.responsibilities %}<div class="responsibilities"><span class="label">Contributions:</span> {{ p.responsibilities }}</div>{% endif %}
+    {% if p.responsibilities %}<div class="label">Contributions</div><div class="responsibilities">{{ p.responsibilities }}</div>{% endif %}
     {% if p.technologies | length %}<div class="meta">Technologies: {{ p.technologies | join(", ") }}</div>{% endif %}
   </div>
   {% endfor %}
