@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ cv.name }} – CV</title>
+  <style>
+    /* Two columns: a coloured sidebar (photo, contact, experience, skills) and a main column
+       (name, summary, projects). Page margins live on <body> (repeated on every page by
+       box-decoration-break), not in @page, so they survive the print dialog's "Margins: None". */
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    :root { --side: #1e3a5f; --side-text: #dbe4ee; --accent: #0f766e; --muted: #52606d; }
+    html { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    body { margin: 0; padding: 16mm 0; box-decoration-break: clone; -webkit-box-decoration-break: clone; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 10pt; line-height: 1.45; color: #1f2933; }
+    /* The sidebar colour is a background of the page itself, so it runs the full height of every printed page. */
+    @media print { html { background: linear-gradient(to right, var(--side) 68mm, #fff 68mm); } }
+    h1, h2, h3, p, ul { margin: 0; }
+    .layout { display: grid; grid-template-columns: 68mm 1fr; }
+
+    aside { padding: 0 9mm 0 10mm; color: var(--side-text); }
+    aside .photo { display: block; width: 36mm; height: 36mm; margin: 0 auto 8mm; border-radius: 50%; object-fit: cover; border: 3px solid #fff; }
+    aside section { margin-bottom: 7mm; }
+    aside h2 { font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #fff; border-bottom: 1px solid rgba(255, 255, 255, .35); padding-bottom: 3px; margin-bottom: 6px; }
+    aside a { color: inherit; text-decoration: none; word-break: break-word; }
+    aside .contact div { margin-bottom: 3px; }
+    aside .contact span { display: block; font-size: 8pt; text-transform: uppercase; letter-spacing: .08em; opacity: .7; }
+    aside .years { font-size: 20pt; font-weight: 700; color: #fff; line-height: 1.1; }
+    aside ul { list-style: none; padding: 0; }
+    aside li { padding: 2px 0 2px 10px; position: relative; }
+    aside li::before { content: ""; position: absolute; left: 0; top: .7em; width: 4px; height: 4px; border-radius: 50%; background: #5eead4; }
+
+    main { padding: 0 14mm 0 10mm; }
+    header { margin-bottom: 8mm; }
+    header h1 { font-size: 24pt; line-height: 1.1; color: var(--side); }
+    header .title { font-size: 12pt; color: var(--accent); margin-top: 3px; }
+    main section { margin-bottom: 7mm; }
+    main h2 { font-size: 10.5pt; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 2px; margin-bottom: 8px; }
+    .project { margin-bottom: 9px; padding-left: 9px; border-left: 2px solid #cbd5e1; break-inside: avoid; }
+    .project-head { display: flex; justify-content: space-between; gap: 8px; }
+    .project h3 { font-size: 11pt; color: var(--side); }
+    .dates { color: var(--muted); font-size: 9pt; white-space: nowrap; }
+    .meta { color: var(--muted); font-size: 9pt; }
+    .role { font-weight: 600; margin: 2px 0; }
+    .label { font-weight: 600; }
+    .responsibilities { white-space: pre-line; margin-top: 2px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 3px 5px; margin-top: 4px; }
+    .tags span { background: #e6f4f1; color: #115e59; border-radius: 3px; padding: 0 6px; font-size: 8.5pt; }
+
+    /* On screen (the browser preview) show an A4 sheet; narrower than A4, the sheet shrinks to fit instead of scrolling. */
+    @media screen {
+      html { background: #e5e7eb; }
+      body { max-width: 210mm; min-height: 297mm; margin: 16px auto; background: linear-gradient(to right, var(--side) 68mm, #fff 68mm); box-shadow: 0 1px 4px rgba(0, 0, 0, .15); }
+    }
+    /* Too narrow for two columns: stack the sidebar above the main column. */
+    @media screen and (max-width: 640px) {
+      body { margin: 0; min-height: 0; padding: 0; background: #fff; box-shadow: none; }
+      .layout { grid-template-columns: 1fr; }
+      aside { background: var(--side); padding: 8mm 6mm 2mm; }
+      main { padding: 8mm 6mm; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    {% if cv.photoUrl %}<img class="photo" src="{{ cv.photoUrl }}" alt="">{% endif %}
+
+    {% if cv.email or cv.phone %}
+    <section class="contact">
+      <h2>Contact</h2>
+      {% if cv.email %}<div><span>Email</span><a href="mailto:{{ cv.email }}">{{ cv.email }}</a></div>{% endif %}
+      {% if cv.phone %}<div><span>Phone</span><a href="tel:{{ cv.phone }}">{{ cv.phone }}</a></div>{% endif %}
+    </section>
+    {% endif %}
+
+    {% if cv.yearsOfExperience %}
+    <section>
+      <h2>Experience</h2>
+      <div class="years">{{ cv.yearsOfExperience }}+</div>
+      <div>years in the field</div>
+    </section>
+    {% endif %}
+
+    {% if cv.skills | length %}
+    <section>
+      <h2>Skills</h2>
+      <ul>{% for skill in cv.skills %}<li>{{ skill }}</li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+  </aside>
+
+  <main>
+    <header>
+      <h1>{{ cv.name }}</h1>
+      <div class="title">{{ cv.jobTitle }}</div>
+    </header>
+
+    {% if cv.summary %}
+    <section>
+      <h2>Profile Summary</h2>
+      <p>{{ cv.summary }}</p>
+    </section>
+    {% endif %}
+
+    {% if cv.projects | length %}
+    <section>
+      <h2>Project Experience</h2>
+      {% for p in cv.projects %}
+      <div class="project">
+        <div class="project-head">
+          <h3>{{ p.name }}</h3>
+          <span class="dates">{{ p.startDate | date }} – {{ p.endDate | date }}</span>
+        </div>
+        <div class="meta">{{ [p.client, p.location, p.sector] | select | join(" · ") }}</div>
+        <div class="role">{{ p.role }}</div>
+        {% if p.description %}<p>{{ p.description }}</p>{% endif %}
+        {% if p.responsibilities %}<div class="label">Contributions</div><div class="responsibilities">{{ p.responsibilities }}</div>{% endif %}
+        {% if p.technologies | length %}<div class="tags">{% for t in p.technologies %}<span>{{ t }}</span>{% endfor %}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+  </main>
+</div>
+</body>
+</html>
