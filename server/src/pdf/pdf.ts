@@ -23,12 +23,31 @@ function getBrowser(): Promise<Browser> {
   return browserPromise;
 }
 
+// For one-off scripts (e.g. the seed CLI) that must exit when done.
+export async function closeBrowser() {
+  const browser = await browserPromise?.catch(() => null);
+  await browser?.close();
+}
+
 export async function htmlToPdf(html: string): Promise<Uint8Array> {
   const browser = await getBrowser();
   const page = await browser.newPage();
   try {
     await page.setContent(html, { waitUntil: "load" });
     return await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true });
+  } finally {
+    await page.close();
+  }
+}
+
+// Screenshot of an HTML snippet at a fixed size, e.g. the generated avatars in the demo seed.
+export async function htmlToPng(html: string, width: number, height: number): Promise<Uint8Array> {
+  const browser = await getBrowser();
+  const page = await browser.newPage();
+  try {
+    await page.setViewport({ width, height });
+    await page.setContent(html, { waitUntil: "load" });
+    return await page.screenshot({ type: "png" });
   } finally {
     await page.close();
   }
