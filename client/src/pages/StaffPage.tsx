@@ -22,7 +22,7 @@ const toForm = (s: Staff): Form => ({
   summary: s.summary,
   skills: s.skills.join(', '),
   email: s.email ?? '',
-  phone: s.phone ?? '',
+  phone: s.phone,
 })
 
 export default function StaffPage() {
@@ -60,7 +60,7 @@ export default function StaffPage() {
       yearsOfExperience: Number(form.yearsOfExperience),
       skills: toList(form.skills),
       email: orNull(form.email),
-      phone: orNull(form.phone),
+      phone: form.phone.trim(),
     }
     try {
       // Stay on the saved record so its project assignments can be managed right away.
@@ -164,7 +164,7 @@ export default function StaffPage() {
             </label>
             <label>
               Phone
-              <input value={form.phone} onChange={set('phone')} placeholder="Optional" />
+              <input type="tel" required value={form.phone} onChange={set('phone')} placeholder="+20 100 000 0000" />
             </label>
           </div>
           <label>
@@ -178,12 +178,17 @@ export default function StaffPage() {
               </span>
             )}
             <input
+              aria-describedby="photo-hint"
               // Remount after save/reset to clear the chosen file.
               key={`${editingId}-${photoPath}`}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
             />
+            <small id="photo-hint">
+              Square (1:1) works best, at least 400 × 400 px. CV templates show it as a circle, so other shapes are
+              cropped to the centre.
+            </small>
           </label>
           <label>
             Skills
