@@ -1,20 +1,20 @@
 import type { IStaff } from "../../entities/Staff.js";
 import type { IProjectAssignment } from "../../entities/ProjectAssignment.js";
 import type { CvData, CvProject } from "../../pdf/types.js";
+import { assignmentPeriod } from "../assignments/period.js";
 
-// Dates may arrive as "YYYY-MM-DD" strings or Date objects depending on the driver mapping.
-const toDateString = (value: unknown) =>
-  value == null ? undefined : value instanceof Date ? value.toISOString().slice(0, 10) : String(value);
-
-export function toCvProject({ project, role, responsibilities }: IProjectAssignment): CvProject {
+export function toCvProject(assignment: IProjectAssignment): CvProject {
+  const { project, role, responsibilities } = assignment;
+  // The staff member's own period on the project, which may be shorter than the project itself.
+  const { startDate, endDate } = assignmentPeriod(assignment);
   return {
     name: project.name,
     client: project.client,
     location: project.location,
     sector: project.sector ?? undefined,
     description: project.description,
-    startDate: toDateString(project.startDate),
-    endDate: toDateString(project.endDate),
+    startDate,
+    endDate: endDate ?? undefined,
     technologies: project.technologies ?? [],
     role,
     responsibilities: responsibilities ?? undefined,
@@ -31,7 +31,7 @@ export function toCvData(staff: IStaff, assignments: IProjectAssignment[], photo
     yearsOfExperience: staff.yearsOfExperience,
     summary: staff.summary,
     email: staff.email ?? undefined,
-    phone: staff.phone ?? undefined,
+    phone: staff.phone,
     photoUrl,
     skills: staff.skills ?? [],
     projects: assignments.map(toCvProject),
