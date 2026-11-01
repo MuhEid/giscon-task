@@ -13,7 +13,7 @@ export const Staff = defineEntity({
     // Skills are free-text tags stored as a Postgres text[] column.
     skills: p.array().default([]),
     email: p.string().nullable().unique(),
-    phone: p.string().nullable(),
+    phone: p.string().check("btrim(phone) <> ''"),
     // Path of the uploaded photo relative to UPLOADS_DIR (e.g. "photos/abc.jpg"); set only via the photo endpoints.
     photoPath: p.string().nullable(),
     createdAt: p.datetime().onCreate(() => new Date()),
