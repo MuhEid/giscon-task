@@ -17,7 +17,7 @@ export interface CvData {
   yearsOfExperience?: number;
   summary?: string;
   email?: string;
-  phone?: string;
+  phone: string;
   photoUrl?: string;
   skills: string[];
   projects: CvProject[];
