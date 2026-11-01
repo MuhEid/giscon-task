@@ -6,7 +6,7 @@ export interface Staff {
   summary: string
   skills: string[]
   email: string | null
-  phone: string | null
+  phone: string
   // Relative to /api/uploads; changed only through api.staff.uploadPhoto/removePhoto.
   photoPath: string | null
 }
@@ -27,6 +27,9 @@ export interface Assignment {
   project: Project
   role: string
   responsibilities: string | null
+  // The staff member's own period on the project; null = same as the project.
+  startDate: string | null
+  endDate: string | null
 }
 
 // A CV template: a Nunjucks HTML file on the server, identified by its file name.
@@ -124,6 +127,10 @@ export const templateLabel = (id: string) => id.replace(/-/g, ' ').replace(/^./,
 export const photoSrc = (photoPath: string) => `/api/uploads/${photoPath}`
 
 export const orNull = (text: string) => text.trim() || null
+
+// When the staff member worked on the project: their own dates, falling back to the project's.
+export const assignmentPeriod = (a: Assignment) =>
+  `${formatDate(a.startDate ?? a.project.startDate)} – ${formatDate(a.endDate ?? a.project.endDate)}`
 
 export const formatDate = (date: string | null) =>
   date ? new Date(date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : 'Present'
