@@ -93,8 +93,9 @@ In `client/`: `npm run build` (typecheck and production build) and `npm run lint
 - **A staff member's participation period equals the project's duration.** Assignments have no dates of their own; the CV shows the project's start/end dates.
 - **"Experience" means total years of professional experience**, stored as a whole number (`years_of_experience >= 0`), entered manually rather than computed from projects (staff have experience from before joining GISCON).
 - **Project "duration" is stored as a date range** (`start_date`, optional `end_date`) rather than a free-text length. A missing end date means the project is ongoing and is shown as "Present". The database enforces `end_date >= start_date`.
+- **Each staff member can have their own period on a project** (`project_assignment.start_date` / `end_date`), for someone who joined late or left early. Either date can be left empty to use the project's. The API rejects a period outside the project's dates, and CVs show and order projects by the staff member's own period (clamped to the project's dates if the project is later shortened).
 - **Skills and technologies are free-text tags** stored as PostgreSQL `text[]` columns rather than separate lookup tables. They are only ever displayed, never queried across staff/projects, so normalising them would add tables and joins with no benefit. They can be migrated to `skill`/`technology` tables later if filtering ("all staff who know React") becomes a requirement.
-- **Name, job title, experience and summary are required** for staff, since every CV template needs them. Contact details (email, phone) and the photo are optional; email is unique when present.
+- **Name, job title, experience and summary are required** for staff, since every CV template needs them. Phone is also required, so every CV has a way to reach the person; email and the photo are optional, and email is unique when present. The photo works best square (1:1), since the photo templates crop it to a circle.
 - **Project name, description, client, location and start date are required**, matching the "project details" listed in the brief. `sector` is an optional extra used to help pick relevant projects for a tender.
 - **Photos are uploaded files stored on the server's disk**, not in the database. The DB holds only the path relative to the uploads directory (`UPLOADS_DIR`, default `server/uploads`), so the directory can move without a data migration. Files get random names; replacing or removing a photo, or deleting the staff member, deletes the old file. Only JPEG, PNG and WebP up to 5 MB are accepted. In CVs the photo is embedded in the HTML as a data URI, so the preview and the PDF need no access to the uploads URL.
 - **Deleting a staff member or a project deletes their assignments** (`on delete cascade`); the other side is kept.
@@ -109,7 +110,7 @@ In `client/`: `npm run build` (typecheck and production build) and `npm run lint
 - **Demo data is seeded only into an empty database** (no staff and no projects), so it never mixes with or overwrites real data. Seeded people, clients and projects are fictional. Avatars are generated images of the person's initials; they're skipped if Chromium isn't available.
 - **Template editing is trusted.** Nunjucks is not sandboxed, so anyone who can edit a template can run code on the server. That's acceptable only because the tool has no users/roles and runs on a trusted network (see above); template editing is the first thing to restrict if access control is added.
 - **In Docker, UI template edits live on a volume**, which Docker fills from the image only when it is first created. Later changes to `server/templates/` in the repo don't reach an existing volume; reset it with `docker compose rm -sf server && docker volume rm giscon-task_templates && docker compose up -d server` (this discards UI edits).
-- **Excluding a project from a CV is per generation, not saved.** The exclusion list travels in the CV request (`?exclude=`), so it never changes the staff member's assignments and nothing has to be reset afterwards. Projects on a CV are listed newest first.
+- **Excluding a project from a CV is per generation, not saved.** The exclusion list travels in the CV request (`?exclude=`), so it never changes the staff member's assignments and nothing has to be reset afterwards. Projects on a CV are listed newest first. The Staff page's **Generate CV** button opens this page with the staff member already selected (`/cv?staff=<id>`).
 - **The schema is managed only by migrations**, which run automatically when the server starts.
 
 ## Data model
@@ -117,14 +118,14 @@ In `client/`: `npm run build` (typecheck and production build) and `npm run lint
 ```
 staff 1 ──< project_assignment >── 1 project
             (staff_id, project_id) PK
-            role, responsibilities
+            role, responsibilities, start_date, end_date
 ```
 
 | Table | Columns |
 |---|---|
-| `staff` | `id`, `name`, `job_title`, `years_of_experience`, `summary`, `skills text[]`, `email` (unique, optional), `phone` (optional), `photo_path` (optional, relative to the uploads directory), `created_at`, `updated_at` |
+| `staff` | `id`, `name`, `job_title`, `years_of_experience`, `summary`, `skills text[]`, `email` (unique, optional), `phone` (required), `photo_path` (optional, relative to the uploads directory), `created_at`, `updated_at` |
 | `project` | `id`, `name`, `description`, `client`, `location`, `sector` (optional), `start_date`, `end_date` (optional), `technologies text[]`, `created_at`, `updated_at` |
-| `project_assignment` | `staff_id` → `staff`, `project_id` → `project` (composite PK, both `on delete cascade`), `role`, `responsibilities` (optional), `created_at` |
+| `project_assignment` | `staff_id` → `staff`, `project_id` → `project` (composite PK, both `on delete cascade`), `role`, `responsibilities` (optional), `start_date` / `end_date` (optional, the staff member's own period; empty = the project's), `created_at` |
 
 ## Key design decisions
 
@@ -169,7 +170,7 @@ All endpoints are under `/api` and exchange JSON unless noted. Errors return `{ 
 |---|---|---|
 | `GET` | `/api/staff` | List staff, by name |
 | `GET` | `/api/staff/:id` | One staff member, with their assignments and projects |
-| `POST` | `/api/staff` | Create: `name`, `jobTitle`, `yearsOfExperience`, `summary`; optional `skills` (array), `email`, `phone` |
+| `POST` | `/api/staff` | Create: `name`, `jobTitle`, `yearsOfExperience`, `summary`; `phone`; optional `skills` (array), `email` |
 | `PUT` | `/api/staff/:id` | Update the fields sent (partial update) |
 | `DELETE` | `/api/staff/:id` | Delete, with their assignments and photo |
 | `PUT` | `/api/staff/:id/photo` | Upload or replace the photo. The body is the image file itself (`Content-Type: image/jpeg`, `image/png` or `image/webp`, up to 5 MB) |
@@ -189,8 +190,8 @@ All endpoints are under `/api` and exchange JSON unless noted. Errors return `{ 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/staff/:staffId/assignments` | The staff member's assignments with their projects, newest first |
-| `POST` | `/api/staff/:staffId/assignments` | Assign to a project: `projectId`, `role`; optional `responsibilities`. 409 if already assigned |
-| `PUT` | `/api/staff/:staffId/assignments/:projectId` | Update `role` / `responsibilities` |
+| `POST` | `/api/staff/:staffId/assignments` | Assign to a project: `projectId`, `role`; optional `responsibilities`, `startDate`, `endDate` (the staff member's own period, within the project's; empty = the project's). 409 if already assigned |
+| `PUT` | `/api/staff/:staffId/assignments/:projectId` | Update `role` / `responsibilities` / `startDate` / `endDate` |
 | `DELETE` | `/api/staff/:staffId/assignments/:projectId` | Remove the staff member from the project |
 
 ### Templates
