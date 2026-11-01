@@ -241,6 +241,23 @@
           "enumItems": [],
           "mappedType": "datetime"
         },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "date"
+        },
         "project_id": {
           "name": "project_id",
           "type": "int",
@@ -308,6 +325,23 @@
           "collation": null,
           "enumItems": [],
           "mappedType": "integer"
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "date"
         }
       },
       "indexes": [
@@ -323,7 +357,14 @@
           "unique": true
         }
       ],
-      "checks": [],
+      "checks": [
+        {
+          "name": "project_assignment_end_date_check",
+          "expression": "end_date is null or start_date is null or end_date >= start_date",
+          "definition": "check (end_date is null or start_date is null or end_date >= start_date)",
+          "columnName": "end_date"
+        }
+      ],
       "triggers": [],
       "foreignKeys": {
         "project_assignment_project_id_foreign": {
@@ -450,7 +491,7 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": true,
+          "nullable": false,
           "unique": false,
           "length": 255,
           "precision": null,
@@ -570,6 +611,12 @@
         }
       ],
       "checks": [
+        {
+          "name": "staff_phone_check",
+          "expression": "btrim(phone) <> ''",
+          "definition": "check (btrim(phone) <> '')",
+          "columnName": "phone"
+        },
         {
           "name": "staff_years_of_experience_check",
           "expression": "years_of_experience >= 0",
