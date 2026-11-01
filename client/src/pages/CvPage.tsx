@@ -1,11 +1,14 @@
 import { useRef, useState } from 'react'
-import { api, formatDate, templateLabel } from '../api'
+import { useSearchParams } from 'react-router'
+import { api, assignmentPeriod, templateLabel } from '../api'
 import { useList } from '../useList'
 
 export default function CvPage() {
   const { items: staff, error: staffError } = useList(api.staff.list)
   const { items: templates } = useList(api.templates.list)
-  const [staffId, setStaffId] = useState<number | null>(null)
+  // `?staff=<id>` (from the Staff page's "Generate CV" button) preselects that staff member.
+  const [searchParams] = useSearchParams()
+  const [staffId, setStaffId] = useState<number | null>(() => Number(searchParams.get('staff')) || null)
   const [chosenTemplate, setTemplate] = useState('')
   const template = chosenTemplate || templates[0] || ''
   // Projects left off the generated CV; reset whenever another staff member is picked.
@@ -86,9 +89,7 @@ export default function CvPage() {
                       <span>
                         <strong>{a.project.name}</strong> · {a.role}
                         <br />
-                        <span className="muted">
-                          {formatDate(a.project.startDate)} – {formatDate(a.project.endDate)}
-                        </span>
+                        <span className="muted">{assignmentPeriod(a)}</span>
                       </span>
                     </label>
                   </li>
