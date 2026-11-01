@@ -11,6 +11,10 @@ export const ProjectAssignment = defineEntity({
     project: () => p.manyToOne(Project).primary().deleteRule("cascade"),
     role: p.string(),
     responsibilities: p.text().nullable(),
+    // The staff member's own period on the project. Null means "same as the project" (for endDate: until
+    // the project ends, or ongoing). The routes keep the effective period inside the project's dates.
+    startDate: p.date().nullable(),
+    endDate: p.date().nullable().check("end_date is null or start_date is null or end_date >= start_date"),
     createdAt: p.datetime().onCreate(() => new Date()),
   },
 });
