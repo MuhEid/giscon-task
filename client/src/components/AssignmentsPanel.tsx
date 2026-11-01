@@ -1,8 +1,10 @@
 import { useState, type SubmitEvent } from 'react'
-import { api, formatDate, orNull, type Assignment } from '../api'
+import { Link } from 'react-router'
+import { api, assignmentPeriod, formatDate, orNull, type Assignment } from '../api'
 import { useList } from '../useList'
 
-const empty = { projectId: '', role: '', responsibilities: '' }
+// Blank dates mean "same as the project".
+const empty = { projectId: '', role: '', responsibilities: '', startDate: '', endDate: '' }
 
 interface Props {
   staffId: number
@@ -26,10 +28,20 @@ export default function AssignmentsPanel({ staffId, staffName }: Props) {
 
   const assignedIds = new Set(assignments.map((a) => a.project.id))
   const available = projects.filter((p) => !assignedIds.has(p.id))
+  // The project picked in the form, to limit the date inputs to its period.
+  const project =
+    assignments.find((a) => a.project.id === editingProjectId)?.project ??
+    projects.find((p) => p.id === Number(form.projectId))
 
   function startEdit(a: Assignment) {
     setEditingProjectId(a.project.id)
-    setForm({ projectId: String(a.project.id), role: a.role, responsibilities: a.responsibilities ?? '' })
+    setForm({
+      projectId: String(a.project.id),
+      role: a.role,
+      responsibilities: a.responsibilities ?? '',
+      startDate: a.startDate ?? '',
+      endDate: a.endDate ?? '',
+    })
     setError(null)
   }
 
@@ -41,7 +53,12 @@ export default function AssignmentsPanel({ staffId, staffName }: Props) {
 
   async function submit(e: SubmitEvent) {
     e.preventDefault()
-    const data = { role: form.role, responsibilities: orNull(form.responsibilities) }
+    const data = {
+      role: form.role,
+      responsibilities: orNull(form.responsibilities),
+      startDate: orNull(form.startDate),
+      endDate: orNull(form.endDate),
+    }
     try {
       if (editingProjectId) await api.assignments.update(staffId, editingProjectId, data)
       else await api.assignments.create(staffId, Number(form.projectId), data)
@@ -73,9 +90,7 @@ export default function AssignmentsPanel({ staffId, staffName }: Props) {
           <li key={a.project.id} className={a.project.id === editingProjectId ? 'selected' : undefined}>
             <div className="assignment-head">
               <strong>{a.project.name}</strong>
-              <span className="muted">
-                {formatDate(a.project.startDate)} – {formatDate(a.project.endDate)}
-              </span>
+              <span className="muted">{assignmentPeriod(a)}</span>
             </div>
             <div>{a.role}</div>
             {a.responsibilities && <p className="muted">{a.responsibilities}</p>}
@@ -115,6 +130,34 @@ export default function AssignmentsPanel({ staffId, staffName }: Props) {
           Role
           <input required value={form.role} onChange={set('role')} placeholder="e.g. Tech Lead" />
         </label>
+        <div className="row">
+          <label>
+            From
+            <input
+              type="date"
+              value={form.startDate}
+              onChange={set('startDate')}
+              min={project?.startDate}
+              max={form.endDate || project?.endDate || undefined}
+            />
+          </label>
+          <label>
+            To
+            <input
+              type="date"
+              value={form.endDate}
+              onChange={set('endDate')}
+              min={form.startDate || project?.startDate}
+              max={project?.endDate ?? undefined}
+            />
+          </label>
+        </div>
+        <p className="muted hint">
+          {project
+            ? `Project runs ${formatDate(project.startDate)} – ${formatDate(project.endDate)}. `
+            : ''}
+          Leave a date blank to use the project's.
+        </p>
         <label>
           Responsibilities / contributions
           <textarea rows={3} value={form.responsibilities} onChange={set('responsibilities')} />
@@ -129,6 +172,9 @@ export default function AssignmentsPanel({ staffId, staffName }: Props) {
               Cancel
             </button>
           )}
+          <Link className="button" to={`/cv?staff=${staffId}`}>
+            Generate CV
+          </Link>
         </div>
       </form>
     </section>
